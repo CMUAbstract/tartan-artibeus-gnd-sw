@@ -291,7 +291,7 @@ for rx_cmd in rx_cmds:
   tx_cmd_buff.clear()
 
 # Write out log file
-with open(dst+'out.hex', 'wb') as outfile:
+with open(dst+'reply-'+src.split('/')[-1], 'wb') as outfile:
   for tx_cmd in tx_cmds:
     size = 0x03+tx_cmd.data[MSG_LEN_INDEX]
     outfile.write(bytearray(tx_cmd.data[0:size]))

@@ -7,7 +7,7 @@ Usage:
 ```bash
 cd $HOME/git-repos/tartan-artibeus-gnd-sw/demo/
 python3 demo.py ./sample.hex ./
-diff expected.hex out.hex
+diff expected.hex reply-sample.hex
 # There should be no output
 ```
 
