@@ -78,32 +78,46 @@ class RxCmdBuffState(enum.Enum):
 def cmd_bytes_to_str(data):
   s = ''
   if data[OPCODE_INDEX] == APP_GET_TELEM_OPCODE:
+    # app_get_telem hwid msgid src dst
     pass
   elif data[OPCODE_INDEX] == APP_GET_TIME_OPCODE:
+    # app_get_time hwid msgid src dst
     pass
   elif data[OPCODE_INDEX] == APP_REBOOT_OPCODE:
+    # app_reboot hwid msgid src dst delay_sec
     pass
   elif data[OPCODE_INDEX] == APP_SET_TIME_OPCODE:
+    # app_set_time hwid msgid src dst sec ns
     pass
   elif data[OPCODE_INDEX] == APP_TELEM_OPCODE:
+    # app_telem hwid msgid src dst
     pass
   elif data[OPCODE_INDEX] == BOOTLOADER_ACK_OPCODE:
+    # bootloader_ack hwid msgid src dst reason
     pass
   elif data[OPCODE_INDEX] == BOOTLOADER_ERASE_OPCODE:
+    # bootloader_erase hwid msgid src dst
     pass
   elif data[OPCODE_INDEX] == BOOTLOADER_JUMP_OPCODE:
+    # bootloader_jump hwid msgid src dst
     pass
   elif data[OPCODE_INDEX] == BOOTLOADER_NACK_OPCODE:
+    # bootloader_nack hwid msgid src dst
     pass
   elif data[OPCODE_INDEX] == BOOTLOADER_PING_OPCODE:
+    # bootloader_ping hwid msgid src dst
     pass
   elif data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_OPCODE:
+    # bootloader_write_page hwid msgid src dst page_number hex_data
     pass
   elif data[OPCODE_INDEX] == COMMON_ACK_OPCODE:
+    # common_ack hwid msgid src dst
     pass
   elif data[OPCODE_INDEX] == COMMON_ASCII_OPCODE:
+    # common_ascii hwid msgid src dst string
     pass
   elif data[OPCODE_INDEX] == COMMON_NACK_OPCODE:
+    # common_nack hwid msgid src dst
     pass
   return s
 
