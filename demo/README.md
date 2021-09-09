@@ -5,9 +5,10 @@ This directory contains scripts and files to demonstrate the TAOLST protocol.
 Usage:
 
 ```bash
-cd $HOME/git-repos/ground-sw/demo/
+cd $HOME/git-repos/tartan-artibeus-gnd-sw/demo/
 python3 demo.py ./sample.hex ./
 diff expected.hex out.hex
+# There should be no output
 ```
 
 ## Directory Contents

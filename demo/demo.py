@@ -6,9 +6,9 @@
 #  out.hex: The hex-format replies to the input commands
 
 # import Python modules
-import copy     # deepcopy
-import enum     # Enum
-import sys      # accessing script arguments
+import copy # deepcopy
+import enum # Enum
+import sys  # accessing script arguments
 
 ################################################################################
 
@@ -219,8 +219,8 @@ if len(sys.argv)==3:
 else:
   print(\
    'Usage: '\
-   'python3 comm_term.py '\
-   '/dev/ttyUSB0 /path/to/log/'\
+   'python3 demo.py '\
+   '/path/to/src /path/to/dst'\
   )
   exit()
 
