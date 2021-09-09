@@ -72,6 +72,41 @@ class RxCmdBuffState(enum.Enum):
   DATA         = 0x09
   COMPLETE     = 0x0a
 
+# helper functions
+
+## Converts a list of command bytes (ints) to a human-readable string
+def cmd_bytes_to_str(data):
+  s = ''
+  if data[OPCODE_INDEX] == APP_GET_TELEM_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == APP_GET_TIME_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == APP_REBOOT_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == APP_SET_TIME_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == APP_TELEM_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == BOOTLOADER_ACK_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == BOOTLOADER_ERASE_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == BOOTLOADER_JUMP_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == BOOTLOADER_NACK_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == BOOTLOADER_PING_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == COMMON_ACK_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == COMMON_ASCII_OPCODE:
+    pass
+  elif data[OPCODE_INDEX] == COMMON_NACK_OPCODE:
+    pass
+  return s
+
 # classes
 
 ## Buffer for received TAOLST commands
@@ -137,8 +172,11 @@ class RxCmdBuff:
     elif self.state == RxCmdBuffState.COMPLETE:
       pass
 
-  def __repr__(self):
-    pass
+  def __str__(self):
+    if self.state == RxCmdBuffState.COMPLETE:
+      return cmd_bytes_to_str(self.data)
+    else:
+      pass
 
 ## Buffer for transmitted TAOLST commands
 class TxCmdBuff:
@@ -195,14 +233,8 @@ class TxCmdBuff:
       elif rx_cmd_buff.data[OPCODE_INDEX] == COMMON_NACK_OPCODE:
         pass
 
-  def __repr__(self):
-    pass
-
-# helper functions
-
-## Converts a string of the form '0xff' to a number of the form 255
-def str_to_int(s):
-  pass
+  def __str__(self):
+    return cmd_bytes_to_str(self.data)
 
 ################################################################################
 
