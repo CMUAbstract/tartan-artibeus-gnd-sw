@@ -1,0 +1,36 @@
+app_get_telem = TxCmd(APP_GET_TELEM_OPCODE, 0x5441, 0x0001, DEST_TERM, DEST_EXPT)
+app_get_time = TxCmd(APP_GET_TIME_OPCODE, 0x5441, 0x0002, DEST_TERM, DEST_EXPT)
+app_reboot_now = TxCmd(APP_REBOOT_OPCODE, 0x5441, 0x0003, DEST_TERM, DEST_EXPT) 
+app_reboot_delay = TxCmd(APP_REBOOT_OPCODE, 0x5441, 0x0004, DEST_TERM, DEST_EXPT)
+app_reboot_delay.app_reboot(1)
+app_set_time = TxCmd(APP_SET_TIME_OPCODE, 0x5441, 0x0005, DEST_TERM, DEST_EXPT)
+app_set_time.app_set_time(686140080,57733000)
+app_telem = TxCmd(APP_TELEM_OPCODE, 0x5441, 0x0006, DEST_TERM, DEST_EXPT)
+telem = [0x00]*78
+for i in range(0,78):
+  telem[i] = 0x00
+
+app_telem.app_telem(telem)
+bootloader_ack = TxCmd(BOOTLOADER_ACK_OPCODE, 0x5441, 0x0007, DEST_TERM, DEST_EXPT)
+bootloader_ack_reason = TxCmd(BOOTLOADER_ACK_OPCODE, 0x5441, 0x0008, DEST_TERM, DEST_EXPT)
+bootloader_ack_reason.bootloader_ack(BOOTLOADER_ACK_REASON_PONG)
+bootloader_erase = TxCmd(BOOTLOADER_ERASE_OPCODE, 0x5441, 0x0009, DEST_TERM, DEST_EXPT)
+bootloader_erase_status = TxCmd(BOOTLOADER_ERASE_OPCODE, 0x5441, 0x000a, DEST_TERM, DEST_EXPT)
+bootloader_erase_status.bootloader_erase(0)
+bootloader_jump = TxCmd(BOOTLOADER_JUMP_OPCODE, 0x5441, 0x000b, DEST_TERM, DEST_EXPT)
+bootloader_nack = TxCmd(BOOTLOADER_NACK_OPCODE, 0x5441, 0x000c, DEST_TERM, DEST_EXPT)
+bootloader_ping = TxCmd(BOOTLOADER_PING_OPCODE, 0x5441, 0x000d, DEST_TERM, DEST_EXPT)
+bootloader_write_page = TxCmd(BOOTLOADER_WRITE_PAGE_OPCODE, 0x5441, 0x000e, DEST_TERM, DEST_EXPT)
+bootloader_write_page.bootloader_write_page(0)
+bootloader_write_page_data = TxCmd(BOOTLOADER_WRITE_PAGE_OPCODE, 0x5441, 0x000f, DEST_TERM, DEST_EXPT)
+data = [0x00]*128
+for i in range(0,128):
+  data[i] = i
+
+bootloader_write_page_data.bootloader_write_page(1,data)
+common_ack = TxCmd(COMMON_ACK_OPCODE, 0x5441, 0x0010, DEST_TERM, DEST_EXPT)
+common_ascii_blank = TxCmd(COMMON_ASCII_OPCODE, 0x5441, 0x0011, DEST_TERM, DEST_EXPT)
+common_ascii = TxCmd(COMMON_ASCII_OPCODE, 0x5441, 0x0012, DEST_TERM, DEST_EXPT)
+common_ascii.common_ascii('Hello, world!')
+common_nack = TxCmd(COMMON_NACK_OPCODE, 0x5441, 0x0013, DEST_TERM, DEST_EXPT)
+
