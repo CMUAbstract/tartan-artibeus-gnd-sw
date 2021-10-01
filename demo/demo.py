@@ -64,6 +64,15 @@ FLASH_WRITE_OK = True
 TIME_SET = True
 BOOT_STATE = True
 J2000 = datetime(2000, 1, 1, 11, 58, 55, 816000)
+
+def hex_format(b):
+  s = hex(b)[2:]
+  #append 0 if just one hex char
+  if (len(s) == 1):
+    s = '0' + s
+  return s
+
+
 # enums
 
 class RxCmdBuffState(enum.Enum):
@@ -86,106 +95,187 @@ def cmd_bytes_to_str(data):
   s = ''
   if data[OPCODE_INDEX] == APP_GET_TELEM_OPCODE:
     # app_get_telem hwid msgid src dst
-    s += 'app_get_telem '
-    s += str(data[HWID_MSB_INDEX]) + ' '
-    s += str(data[HWID_LSB_INDEX]) + ' '
-    s += str(data[MSG_ID_MSB_INDEX]) + ' '
-    s += str(data[MSG_ID_LSB_INDEX]) + ' '
-    s += str(data[DEST_ID_INDEX]) 
-  
+    s += 'app_get_telem - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX])  
   elif data[OPCODE_INDEX] == APP_GET_TIME_OPCODE:
     # app_get_time hwid msgid src dst
-    s += 'app_get_time '
-    s += str(data[HWID_MSB_INDEX]) + ' '
-    s += str(data[HWID_LSB_INDEX]) + ' '
-    s += str(data[MSG_ID_MSB_INDEX]) + ' '
-    s += str(data[MSG_ID_LSB_INDEX]) + ' '
-    s += str(data[DEST_ID_INDEX])
-    
+    s += 'app_get_time - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX])  
   elif data[OPCODE_INDEX] == APP_REBOOT_OPCODE:
     # app_reboot hwid msgid src dst delay_sec
-    s += 'app_reboot '
-    s += str(data[HWID_MSB_INDEX]) + ' '
-    s += str(data[HWID_LSB_INDEX]) + ' '
-    s += str(data[MSG_ID_MSB_INDEX]) + ' '
-    s += str(data[MSG_ID_LSB_INDEX]) + ' '
-    s += str(data[DEST_ID_INDEX]) + ' '
-    
+    s += 'app_reboot - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX])   
   elif data[OPCODE_INDEX] == APP_SET_TIME_OPCODE:
     # app_set_time hwid msgid src dst sec ns
-    pass
+    s += 'app_set_time - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX]) + ' '
+
+    s += '| SECONDS: '
+    s += hex_format(data[DATA_START_INDEX+3]) + ' '
+    s += hex_format(data[DATA_START_INDEX+2]) + ' '
+    s += hex_format(data[DATA_START_INDEX+1]) + ' '
+    s += hex_format(data[DATA_START_INDEX]) + ' '
+
+    s += '| NANOSECONDS: '
+    s += hex_format(data[DATA_START_INDEX+7]) + ' '
+    s += hex_format(data[DATA_START_INDEX+6]) + ' '
+    s += hex_format(data[DATA_START_INDEX+5]) + ' '
+    s += hex_format(data[DATA_START_INDEX+4]) 
   elif data[OPCODE_INDEX] == APP_TELEM_OPCODE:
     # app_telem hwid msgid src dst
-    pass
+    s += 'app_telem - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX])
   elif data[OPCODE_INDEX] == BOOTLOADER_ACK_OPCODE:
     # bootloader_ack hwid msgid src dst reason
-    s += 'bootloader_ack '
-    s += str(data[HWID_MSB_INDEX]) + ' '
-    s += str(data[HWID_LSB_INDEX]) + ' '
-    s += str(data[MSG_ID_MSB_INDEX]) + ' '
-    s += str(data[MSG_ID_LSB_INDEX]) + ' '
-    s += str(data[DEST_ID_INDEX]) + ' '
-    s += str(data[DATA_START_INDEX])
-
+    s += 'bootloader_ack - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += 'MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX]) 
+    s += '| REASON: '
+    s += hex_format(data[DATA_START_INDEX])
   elif data[OPCODE_INDEX] == BOOTLOADER_ERASE_OPCODE:
     # bootloader_erase hwid msgid src dst
-    s += 'bootloader_erase '
-    s += str(data[HWID_MSB_INDEX]) + ' '
-    s += str(data[HWID_LSB_INDEX]) + ' '
-    s += str(data[MSG_ID_MSB_INDEX]) + ' '
-    s += str(data[MSG_ID_LSB_INDEX]) + ' '
-    s += str(data[DEST_ID_INDEX]) 
-
+    s += 'bootloader_erase - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX]) 
   elif data[OPCODE_INDEX] == BOOTLOADER_JUMP_OPCODE:
     # bootloader_jump hwid msgid src dst
-    s += 'bootloader_jump '
-    s += str(data[HWID_MSB_INDEX]) + ' '
-    s += str(data[HWID_LSB_INDEX]) + ' '
-    s += str(data[MSG_ID_MSB_INDEX]) + ' '
-    s += str(data[MSG_ID_LSB_INDEX]) + ' '
-    s += str(data[DEST_ID_INDEX])
-
+    s += 'bootloader_jump - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX]) 
   elif data[OPCODE_INDEX] == BOOTLOADER_NACK_OPCODE:
     # bootloader_nack hwid msgid src dst
-    s += 'bootloader_nack '
-    s += str(data[HWID_MSB_INDEX]) + ' '
-    s += str(data[HWID_LSB_INDEX]) + ' '
-    s += str(data[MSG_ID_MSB_INDEX]) + ' '
-    s += str(data[MSG_ID_LSB_INDEX]) + ' '
-    s += str(data[DEST_ID_INDEX])
-
+    s += 'bootloader_nack - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX]) 
   elif data[OPCODE_INDEX] == BOOTLOADER_PING_OPCODE:
     # bootloader_ping hwid msgid src dst
-    s += 'bootloader_ping '
-    s += str(data[HWID_MSB_INDEX]) + ' '
-    s += str(data[HWID_LSB_INDEX]) + ' '
-    s += str(data[MSG_ID_MSB_INDEX]) + ' '
-    s += str(data[MSG_ID_LSB_INDEX]) + ' '
-    s += str(data[DEST_ID_INDEX])
-
+    s += 'bootloader_ping - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX]) 
   elif data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_OPCODE:
     # bootloader_write_page hwid msgid src dst page_number hex_data
-    pass
+    hex_data_format = 0
+    hex_data_len = data[MSG_LEN_INDEX] - 7
+    hex_data_start_index = DATA_START_INDEX+1
+    s += 'bootloader_write_page - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX]) + ' '
+    s += '| PAGE_NUM: '
+    s += hex_format(data[DATA_START_INDEX]) 
+    s += '\nHEX_DATA:'
+    for i in range(hex_data_start_index, hex_data_start_index + hex_data_len):
+      if (hex_data_format % 4 == 0):
+        s += '\n'
+      s += hex_format(data[i]) + ' '
+      hex_data_format += 1
   elif data[OPCODE_INDEX] == COMMON_ACK_OPCODE:
     # common_ack hwid msgid src dst
-    s += 'common_ack '
-    s += str(data[HWID_MSB_INDEX]) + ' '
-    s += str(data[HWID_LSB_INDEX]) + ' '
-    s += str(data[MSG_ID_MSB_INDEX]) + ' '
-    s += str(data[MSG_ID_LSB_INDEX]) + ' '
-    s += str(data[DEST_ID_INDEX])
-
+    s += 'common_ack - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX]) 
   elif data[OPCODE_INDEX] == COMMON_ASCII_OPCODE:
     # common_ascii hwid msgid src dst string
-    pass
+    string_len = data[MSG_LEN_INDEX] - 6
+    s += 'common_ascii - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX])
+    s += '\nSTRING: '
+    for i in range(DATA_START_INDEX, DATA_START_INDEX + string_len):
+      s += chr(data[i])  
   elif data[OPCODE_INDEX] == COMMON_NACK_OPCODE:
     # common_nack hwid msgid src dst
-    s += 'common_nack '
-    s += str(data[HWID_MSB_INDEX]) + ' '
-    s += str(data[HWID_LSB_INDEX]) + ' '
-    s += str(data[MSG_ID_MSB_INDEX]) + ' '
-    s += str(data[MSG_ID_LSB_INDEX]) + ' '
-    s += str(data[DEST_ID_INDEX])
+    s += 'common_nack - '
+    s += 'HWID: '
+    s += hex_format(data[HWID_MSB_INDEX]) + ' '
+    s += hex_format(data[HWID_LSB_INDEX]) + ' '
+    s += '| MSG_ID: '
+    s += hex_format(data[MSG_ID_MSB_INDEX]) + ' '
+    s += hex_format(data[MSG_ID_LSB_INDEX]) + ' '
+    s += '| DEST_ID: '
+    s += hex_format(data[DEST_ID_INDEX]) 
 
   return s
 
@@ -241,12 +331,9 @@ class RxCmdBuff:
       self.state = RxCmdBuffState.OPCODE
     elif self.state == RxCmdBuffState.OPCODE:
       self.data[OPCODE_INDEX] = b
-
       if self.start_index < self.end_index:
-
         self.state = RxCmdBuffState.DATA
       else:
-      
         self.state = RxCmdBuffState.COMPLETE
     elif self.state == RxCmdBuffState.DATA:
       if self.start_index < self.end_index:
@@ -287,36 +374,32 @@ class TxCmdBuff:
       self.data[HWID_MSB_INDEX] = rx_cmd_buff.data[HWID_MSB_INDEX]
       self.data[MSG_ID_LSB_INDEX] = rx_cmd_buff.data[MSG_ID_LSB_INDEX]
       self.data[MSG_ID_MSB_INDEX] = rx_cmd_buff.data[MSG_ID_MSB_INDEX]
-      #What is the purpose of this
       self.data[DEST_ID_INDEX] = \
        (0x0f & rx_cmd_buff.data[DEST_ID_INDEX]) << 4 | \
        (0xf0 & rx_cmd_buff.data[DEST_ID_INDEX]) >> 4
-      #Not sure about length byte
       if rx_cmd_buff.data[OPCODE_INDEX] == APP_GET_TELEM_OPCODE:
         self.data[MSG_LEN_INDEX] = 0x06
         self.data[OPCODE_INDEX] = APP_TELEM_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == APP_GET_TIME_OPCODE:
         if TIME_SET:
           dt = datetime.utcnow() - J2000
-          seconds = int(dt.total_seconds())
-          nanoseconds = dt.microseconds * 1000
-          seconds_bytes = bytearray(seconds.to_bytes(4, 'little'))
-          nanoseconds_bytes = bytearray(nanoseconds.to_bytes(4, "little"))
+          sec = int(dt.total_seconds())
+          ns = dt.microseconds * 1000
+          sec_bytes = bytearray(sec.to_bytes(4, 'little'))
+          ns_bytes = bytearray(ns.to_bytes(4, "little"))
           self.data[MSG_LEN_INDEX] = 0x0e
           self.data[OPCODE_INDEX] = APP_SET_TIME_OPCODE
-          self.data[DATA_START_INDEX] = seconds_bytes[0]
-          self.data[DATA_START_INDEX+1] = seconds_bytes[1]
-          self.data[DATA_START_INDEX+2] = seconds_bytes[2]
-          self.data[DATA_START_INDEX+3] = seconds_bytes[3]
-          self.data[DATA_START_INDEX+4] = nanoseconds_bytes[0]
-          self.data[DATA_START_INDEX+5] = nanoseconds_bytes[1]
-          self.data[DATA_START_INDEX+6] = nanoseconds_bytes[2]
-          self.data[DATA_START_INDEX+7] = nanoseconds_bytes[3]
+          self.data[DATA_START_INDEX] = sec_bytes[0]
+          self.data[DATA_START_INDEX+1] = sec_bytes[1]
+          self.data[DATA_START_INDEX+2] = sec_bytes[2]
+          self.data[DATA_START_INDEX+3] = sec_bytes[3]
+          self.data[DATA_START_INDEX+4] = ns_bytes[0]
+          self.data[DATA_START_INDEX+5] = ns_bytes[1]
+          self.data[DATA_START_INDEX+6] = ns_bytes[2]
+          self.data[DATA_START_INDEX+7] = ns_bytes[3]
         else:
           self.data[MSG_LEN_INDEX] = 0x06
           self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == APP_REBOOT_OPCODE:
         #If no delay provided, then common ack immediately
         if(rx_cmd_buff.data[MSG_LEN_INDEX] == 0x06):
@@ -333,19 +416,15 @@ class TxCmdBuff:
           else:
             self.data[MSG_LEN_INDEX] = 0x06
             self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == APP_SET_TIME_OPCODE:
         self.data[MSG_LEN_INDEX] = 0x06
         self.data[OPCODE_INDEX] = COMMON_ACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == APP_TELEM_OPCODE:
         self.data[MSG_LEN_INDEX] = 0x06
         self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_ACK_OPCODE:
         self.data[MSG_LEN_INDEX] = 0x06
         self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_ERASE_OPCODE:
         if BOOT_STATE:
           self.data[MSG_LEN_INDEX] = 0x07
@@ -354,11 +433,9 @@ class TxCmdBuff:
         else:
           self.data[MSG_LEN_INDEX] = 0x06
           self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_NACK_OPCODE:
         self.data[MSG_LEN_INDEX] = 0x06
         self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_PING_OPCODE:
         if BOOT_STATE:
           self.data[MSG_LEN_INDEX] = 0x07
@@ -367,7 +444,6 @@ class TxCmdBuff:
         else:
           self.data[MSG_LEN_INDEX] = 0x06
           self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_OPCODE:
         if BOOT_STATE:
           if (FLASH_WRITE_OK):
@@ -381,7 +457,6 @@ class TxCmdBuff:
         else:
           self.data[MSG_LEN_INDEX] = 0x06
           self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_JUMP_OPCODE:
         if BOOT_STATE:
           self.data[MSG_LEN_INDEX] = 0x07
@@ -390,15 +465,12 @@ class TxCmdBuff:
         else:
           self.data[MSG_LEN_INDEX] = 0x06
           self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == COMMON_ACK_OPCODE:
         self.data[MSG_LEN_INDEX] = 0x06
         self.data[OPCODE_INDEX] = COMMON_ACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == COMMON_ASCII_OPCODE:
         self.data[MSG_LEN_INDEX] = 0x06
         self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
-
       elif rx_cmd_buff.data[OPCODE_INDEX] == COMMON_NACK_OPCODE:
         self.data[MSG_LEN_INDEX] = 0x06
         self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
@@ -429,7 +501,6 @@ else:
 # Read the input file
 rx_cmds = []
 with open(src, 'rb') as infile:
-  
   rx_cmd_buff = RxCmdBuff()
   b = infile.read(1)
   while b:
@@ -441,10 +512,8 @@ with open(src, 'rb') as infile:
     b = infile.read(1)
 
 # Generate the responses
-
 tx_cmds = []
 for rx_cmd in rx_cmds:
- 
   tx_cmd_buff = TxCmdBuff()
   tx_cmd_buff.generate_reply(rx_cmd)
   tx_cmds.append(copy.deepcopy(tx_cmd_buff))
