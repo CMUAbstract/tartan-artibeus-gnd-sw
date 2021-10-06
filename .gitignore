@@ -1,3 +1,6 @@
 # Files
 out.hex
 reply-*.hex
+
+# Python
+p3-env/
