@@ -10,6 +10,7 @@
 import copy     # deepcopy
 import datetime # datetime
 import enum     # Enum
+import math     # floor
 import serial   # serial
 import sys      # accessing script arguments
 import time     # sleep
@@ -69,7 +70,10 @@ OPCODE_INDEX       = 8
 DATA_START_INDEX   = 9
 
 ## Space time epoch
-J2000 = datetime.datetime(2000, 1, 1, 11, 58, 55, 816000)
+J2000 = datetime.datetime(\
+ 2000, 1, 1,11,58,55,816000,\
+ tzinfo=datetime.timezone.utc\
+)
 
 # enums
 
@@ -423,9 +427,9 @@ class TxCmdBuff:
         for i in range(0,self.data[MSG_LEN_INDEX]-0x06):
           self.data[DATA_START_INDEX+i] = 0x00
       elif rx_cmd_buff.data[OPCODE_INDEX] == APP_GET_TIME_OPCODE:
-        dt  = datetime.datetime.utcnow() - J2000
-        sec = int(dt.total_seconds())
-        ns  = dt.microseconds * 1000
+        td  = datetime.datetime.now(tz=datetime.timezone.utc) - J2000
+        sec = math.floor(td.total_seconds())
+        ns  = td.microseconds * 1000
         sec_bytes = bytearray(sec.to_bytes(4,'little'))
         ns_bytes  = bytearray( ns.to_bytes(4,"little"))
         self.data[MSG_LEN_INDEX] = 0x0e
@@ -581,8 +585,8 @@ time.sleep(1.0)
 
 # 5. Set time
 cmd = TxCmd(APP_SET_TIME_OPCODE, HWID, msgid, SRC, DST)
-dt = datetime.datetime.utcnow() - J2000
-cmd.app_set_time(sec=int(dt.total_seconds()), ns=(dt.microseconds*1000))
+td = datetime.datetime.now(tz=datetime.timezone.utc) - J2000
+cmd.app_set_time(sec=math.floor(td.total_seconds()), ns=(td.microseconds*1000))
 byte_i = 0
 while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
   if byte_i < cmd.get_byte_count():
@@ -618,3 +622,43 @@ for i in range(0,5):
   msgid += 1
   time.sleep(1.0)
 
+# 7. Set time in preparation for TLE test
+#cmd = TxCmd(APP_SET_TIME_OPCODE, HWID, msgid, SRC, DST)
+#td = datetime.datetime(2021,10,11,15,53,56,639904) - J2000
+#cmd.app_set_time(sec=math.floor(td.total_seconds()), ns=(td.microseconds*1000))
+#byte_i = 0
+#while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
+#  if byte_i < cmd.get_byte_count():
+#    serial_port.write(cmd.data[byte_i].to_bytes(1, byteorder='big'))
+#    byte_i += 1
+#  if serial_port.in_waiting>0:
+#    bytes = serial_port.read(1)
+#    for b in bytes:
+#      rx_cmd_buff.append_byte(b)
+#print('txcmd: '+str(cmd))
+#print('reply: '+str(rx_cmd_buff)+'\n')
+#cmd.clear()
+#rx_cmd_buff.clear()
+#msgid += 1
+#time.sleep(1.0)
+
+# 8. Periodic get time in preparation for TLE test
+#for i in range(0,5):
+#  cmd = TxCmd(APP_GET_TIME_OPCODE, HWID, msgid, SRC, DST)
+#  byte_i = 0
+#  while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
+#    if byte_i < cmd.get_byte_count():
+#      serial_port.write(cmd.data[byte_i].to_bytes(1, byteorder='big'))
+#      byte_i += 1
+#    if serial_port.in_waiting>0:
+#      bytes = serial_port.read(1)
+#      for b in bytes:
+#        rx_cmd_buff.append_byte(b)
+#  print('txcmd: '+str(cmd))
+#  print('reply: '+str(rx_cmd_buff)+'\n')
+#  cmd.clear()
+#  rx_cmd_buff.clear()
+#  msgid += 1
+#  time.sleep(1.0)
+
+# 9. Send TLE and parse response
