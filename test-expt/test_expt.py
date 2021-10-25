@@ -623,42 +623,85 @@ for i in range(0,5):
   time.sleep(1.0)
 
 # 7. Set time in preparation for TLE test
-#cmd = TxCmd(APP_SET_TIME_OPCODE, HWID, msgid, SRC, DST)
-#td = datetime.datetime(2021,10,11,15,53,56,639904) - J2000
-#cmd.app_set_time(sec=math.floor(td.total_seconds()), ns=(td.microseconds*1000))
-#byte_i = 0
-#while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
-#  if byte_i < cmd.get_byte_count():
-#    serial_port.write(cmd.data[byte_i].to_bytes(1, byteorder='big'))
-#    byte_i += 1
-#  if serial_port.in_waiting>0:
-#    bytes = serial_port.read(1)
-#    for b in bytes:
-#      rx_cmd_buff.append_byte(b)
-#print('txcmd: '+str(cmd))
-#print('reply: '+str(rx_cmd_buff)+'\n')
-#cmd.clear()
-#rx_cmd_buff.clear()
-#msgid += 1
-#time.sleep(1.0)
+cmd = TxCmd(APP_SET_TIME_OPCODE, HWID, msgid, SRC, DST)
+td = \
+ datetime.datetime(\
+  2021,10,11,15,53,57,000000,tzinfo=datetime.timezone.utc\
+ ) - J2000
+cmd.app_set_time(sec=math.floor(td.total_seconds()), ns=(td.microseconds*1000))
+byte_i = 0
+while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
+  if byte_i < cmd.get_byte_count():
+    serial_port.write(cmd.data[byte_i].to_bytes(1, byteorder='big'))
+    byte_i += 1
+  if serial_port.in_waiting>0:
+    bytes = serial_port.read(1)
+    for b in bytes:
+      rx_cmd_buff.append_byte(b)
+print('txcmd: '+str(cmd))
+print('reply: '+str(rx_cmd_buff)+'\n')
+cmd.clear()
+rx_cmd_buff.clear()
+msgid += 1
+time.sleep(1.0)
 
 # 8. Periodic get time in preparation for TLE test
-#for i in range(0,5):
-#  cmd = TxCmd(APP_GET_TIME_OPCODE, HWID, msgid, SRC, DST)
-#  byte_i = 0
-#  while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
-#    if byte_i < cmd.get_byte_count():
-#      serial_port.write(cmd.data[byte_i].to_bytes(1, byteorder='big'))
-#      byte_i += 1
-#    if serial_port.in_waiting>0:
-#      bytes = serial_port.read(1)
-#      for b in bytes:
-#        rx_cmd_buff.append_byte(b)
-#  print('txcmd: '+str(cmd))
-#  print('reply: '+str(rx_cmd_buff)+'\n')
-#  cmd.clear()
-#  rx_cmd_buff.clear()
-#  msgid += 1
-#  time.sleep(1.0)
+for i in range(0,4):
+  cmd = TxCmd(APP_GET_TIME_OPCODE, HWID, msgid, SRC, DST)
+  byte_i = 0
+  while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
+    if byte_i < cmd.get_byte_count():
+      serial_port.write(cmd.data[byte_i].to_bytes(1, byteorder='big'))
+      byte_i += 1
+    if serial_port.in_waiting>0:
+      bytes = serial_port.read(1)
+      for b in bytes:
+        rx_cmd_buff.append_byte(b)
+  print('txcmd: '+str(cmd))
+  print('reply: '+str(rx_cmd_buff)+'\n')
+  cmd.clear()
+  rx_cmd_buff.clear()
+  msgid += 1
+  time.sleep(1.0)
 
-# 9. Send TLE and parse response
+# 9. Periodic send TLE and parse response
+for i in range(0,4):
+  cmd = TxCmd(COMMON_ASCII_OPCODE, HWID, msgid, SRC, DST)
+  tle  = 'TLE'
+  tle += 'FLOCK 3K-5              '
+  tle += '1 43899U 18111Z   21284.66246111  .00014637  00000-0  51582-3 0  9994'
+  tle += '2 43899  97.2179 176.7560 0018058 232.7758 127.1835 15.29226533155475'
+  cmd.common_ascii(tle)
+  byte_i = 0
+  while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
+    if byte_i < cmd.get_byte_count():
+      serial_port.write(cmd.data[byte_i].to_bytes(1, byteorder='big'))
+      byte_i += 1
+    if serial_port.in_waiting>0:
+      bytes = serial_port.read(1)
+      for b in bytes:
+        rx_cmd_buff.append_byte(b)
+  print('txcmd: '+str(cmd))
+  print('reply: '+str(rx_cmd_buff)+'\n')
+  cmd.clear()
+  rx_cmd_buff.clear()
+  msgid += 1
+  time.sleep(1.0)
+
+#10. Check that ack still works
+cmd = TxCmd(COMMON_ACK_OPCODE, HWID, msgid, SRC, DST)
+byte_i = 0
+while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
+  if byte_i < cmd.get_byte_count():
+    serial_port.write(cmd.data[byte_i].to_bytes(1, byteorder='big'))
+    byte_i += 1
+  if serial_port.in_waiting>0:
+    bytes = serial_port.read(1)
+    for b in bytes:
+      rx_cmd_buff.append_byte(b)
+print('txcmd: '+str(cmd))
+print('reply: '+str(rx_cmd_buff)+'\n')
+cmd.clear()
+rx_cmd_buff.clear()
+msgid += 1
+time.sleep(1.0)
