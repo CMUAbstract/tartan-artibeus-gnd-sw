@@ -444,7 +444,7 @@ page_counter = 0
 for i in range(0, len(total_data), 2):
 
   if (page_counter == 128):
-    pages += [bytearray(curr_page)]
+    pages += [curr_page]
     page_offset += 1
     curr_page = [page_offset]
     page_counter = 0
@@ -459,7 +459,7 @@ while(page_counter < 128):
   curr_page += [0xff]
   page_counter += 1
 
-pages += [bytearray(curr_page)]
+pages += [curr_page]
 
 print(f'num of pages: {len(pages)}')
 
@@ -468,7 +468,7 @@ print(f'num of pages: {len(pages)}')
 # Bootloader write page commands for user program
 for page in pages:
     cmd = TxCmd(BOOTLOADER_WRITE_PAGE_OPCODE, HWID, msgid, SRC, DST)
-    cmd.bootloader_write_page(page[0], page[1:len(page)])
+    cmd.bootloader_write_page(page_number=page[0], page_data=bytearray(page[1:len(page)]))
     byte_i = 0
     while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
         if byte_i < cmd.get_byte_count():
