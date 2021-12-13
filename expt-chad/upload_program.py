@@ -461,6 +461,11 @@ while(page_counter < 128):
 
 pages += [curr_page]
 
+if (len(pages) > 255):
+  print("Program too large to write with script (Exceeds 255 pages)")
+  exit()
+
+
 print(f'num of pages: {len(pages)}')
 
 
