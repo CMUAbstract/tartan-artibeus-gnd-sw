@@ -14,7 +14,7 @@ python3 test_ctrl.py /dev/ttyUSB0
 
 ## License
 
-Written by Chad Taylor 
+Written by Chad Taylor
 Other contributors: Brad Denby
 
 See the top-level LICENSE file for the license.
