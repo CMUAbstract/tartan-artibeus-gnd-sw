@@ -167,6 +167,12 @@ def cmd_bytes_to_str(data):
         extra += '{:02x}'.format(data[DATA_START_INDEX+1+i])
   elif data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_EXT_OPCODE:
     s += 'bootloader_write_page_ext'
+    page_num = ((data[DATA_START_INDEX]) << 8) + data[DATA_START_INDEX+1]
+    extra = ' subpage_id:'+str(page_num)
+    if data[MSG_LEN_INDEX] == 0x88:
+      extra += ' hex_data:'
+      for i in range(0,data[MSG_LEN_INDEX]-0x07):
+        extra += '{:02x}'.format(data[DATA_START_INDEX+2+i])
   elif data[OPCODE_INDEX] == COMMON_ACK_OPCODE:
     s += 'common_ack'
   elif data[OPCODE_INDEX] == COMMON_ASCII_OPCODE:
@@ -310,7 +316,7 @@ class TxCmd:
       self.data[DATA_START_INDEX] = num[0]
       self.data[DATA_START_INDEX+1] = num[1]
       if len(page_data)==128:
-        self.data[MSG_LEN_INDEX] = 0x87
+        self.data[MSG_LEN_INDEX] = 0x88
         for i in range(0,len(page_data)):
           self.data[DATA_START_INDEX+2+i] = page_data[i]
 
@@ -503,7 +509,7 @@ for page in pages:
     cmd.clear()
     rx_cmd_buff.clear()
     msgid += 1
-    time.sleep(1.0)
+    #time.sleep(1.0)
 
 # Bootloader jump
 cmd = TxCmd(BOOTLOADER_JUMP_OPCODE, HWID, msgid, SRC, DST)
