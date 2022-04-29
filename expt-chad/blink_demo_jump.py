@@ -1,8 +1,16 @@
+# Usage: python3 test_expt.py /path/to/src /path/to/dst /path/to/dev
+# Parameters:
+#  /path/to/src: path to input file
+#  /path/to/dst: destination directory for output file
+#  /path/to/dev: path to device, e.g. /dev/ttyUSB0
+# Output:
+#  out.hex: The hex-format replies to the input commands
 
 # import Python modules
 import copy     # deepcopy
 import datetime # datetime
 import enum     # Enum
+import math     # floor
 import serial   # serial
 import sys      # accessing script arguments
 import time     # sleep
@@ -29,22 +37,20 @@ DEST_EXPT    = 0x02
 DEST_TERM    = 0x00
 
 ## TAOLST Command Op Codes
-APP_GET_TELEM_OPCODE              = 0x17
-APP_GET_TIME_OPCODE               = 0x13
-APP_REBOOT_OPCODE                 = 0x12
-APP_SET_TIME_OPCODE               = 0x14
-APP_TELEM_OPCODE                  = 0x18
-BOOTLOADER_ACK_OPCODE             = 0x01
-BOOTLOADER_ERASE_OPCODE           = 0x0c
-BOOTLOADER_JUMP_OPCODE            = 0x0b
-BOOTLOADER_NACK_OPCODE            = 0x0f
-BOOTLOADER_PING_OPCODE            = 0x00
-BOOTLOADER_WRITE_PAGE_OPCODE      = 0x02
-BOOTLOADER_WRITE_PAGE_EXT_OPCODE  = 0x03
-BOOTLOADER_WRITE_PAGE_ADDR32_OPCODE = 0x20
-COMMON_ACK_OPCODE                 = 0x10
-COMMON_ASCII_OPCODE               = 0x11
-COMMON_NACK_OPCODE                = 0xff
+APP_GET_TELEM_OPCODE         = 0x17
+APP_GET_TIME_OPCODE          = 0x13
+APP_REBOOT_OPCODE            = 0x12
+APP_SET_TIME_OPCODE          = 0x14
+APP_TELEM_OPCODE             = 0x18
+BOOTLOADER_ACK_OPCODE        = 0x01
+BOOTLOADER_ERASE_OPCODE      = 0x0c
+BOOTLOADER_JUMP_OPCODE       = 0x0b
+BOOTLOADER_NACK_OPCODE       = 0x0f
+BOOTLOADER_PING_OPCODE       = 0x00
+BOOTLOADER_WRITE_PAGE_OPCODE = 0x02
+COMMON_ACK_OPCODE            = 0x10
+COMMON_ASCII_OPCODE          = 0x11
+COMMON_NACK_OPCODE           = 0xff
 
 ## TAOLST Command Enum Parameters
 BOOTLOADER_ACK_REASON_PONG   = 0x00
@@ -64,11 +70,10 @@ OPCODE_INDEX       = 8
 DATA_START_INDEX   = 9
 
 ## Space time epoch
-J2000 = datetime.datetime(2000, 1, 1, 11, 58, 55, 816000)
-
-## Values for calculating app address
-START_ADDR = 0x8008000
-BYTES_PER_CMD = 128
+J2000 = datetime.datetime(\
+ 2000, 1, 1,11,58,55,816000,\
+ tzinfo=datetime.timezone.utc\
+)
 
 # enums
 
@@ -170,25 +175,6 @@ def cmd_bytes_to_str(data):
       extra += ' hex_data:'
       for i in range(0,data[MSG_LEN_INDEX]-0x07):
         extra += '{:02x}'.format(data[DATA_START_INDEX+1+i])
-  elif data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_EXT_OPCODE:
-    s += 'bootloader_write_page_ext'
-    page_num = ((data[DATA_START_INDEX]) << 8) + data[DATA_START_INDEX+1]
-    extra = ' subpage_id:'+str(page_num)
-    if data[MSG_LEN_INDEX] == 0x88:
-      extra += ' hex_data:'
-      for i in range(0,data[MSG_LEN_INDEX]-0x07):
-        extra += '{:02x}'.format(data[DATA_START_INDEX+2+i])
-  elif data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_ADDR32_OPCODE:
-    s += 'bootloader_write_page_addr32'
-    addr = ((data[DATA_START_INDEX]) << 24) + \
-                ((data[DATA_START_INDEX+1]) << 16) + \
-                ((data[DATA_START_INDEX+2]) << 8) + \
-                data[DATA_START_INDEX+3]
-    extra = ' Address: 0x{:08x}'.format(addr)
-    if data[MSG_LEN_INDEX] == 0x8a:
-        extra += ' hex_data:'
-        for i in range(0,data[MSG_LEN_INDEX]-0x07):
-            extra += '{:02x}'.format(data[DATA_START_INDEX+4+i])
   elif data[OPCODE_INDEX] == COMMON_ACK_OPCODE:
     s += 'common_ack'
   elif data[OPCODE_INDEX] == COMMON_ASCII_OPCODE:
@@ -260,12 +246,6 @@ class TxCmd:
     elif self.data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_OPCODE:
       self.data[MSG_LEN_INDEX]    = 0x07
       self.data[DATA_START_INDEX] = 0x00
-    elif self.data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_EXT_OPCODE:
-      self.data[MSG_LEN_INDEX]    = 0x07
-      self.data[DATA_START_INDEX] = 0x00
-    elif self.data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_ADDR32_OPCODE:
-      self.data[MSG_LEN_INDEX]    = 0x07
-      self.data[DATA_START_INDEX] = 0x00
     elif self.data[OPCODE_INDEX] == COMMON_ACK_OPCODE:
       self.data[MSG_LEN_INDEX] = 0x06
     elif self.data[OPCODE_INDEX] == COMMON_ASCII_OPCODE:
@@ -328,28 +308,6 @@ class TxCmd:
         self.data[MSG_LEN_INDEX] = 0x87
         for i in range(0,len(page_data)):
           self.data[DATA_START_INDEX+1+i] = page_data[i]
-  
-  def bootloader_write_page_ext(self, page_number, page_data=[]):
-    if self.data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_EXT_OPCODE:
-      num = page_number.to_bytes(2, byteorder='big')
-      self.data[DATA_START_INDEX] = num[0]
-      self.data[DATA_START_INDEX+1] = num[1]
-      if len(page_data)==128:
-        self.data[MSG_LEN_INDEX] = 0x88
-        for i in range(0,len(page_data)):
-          self.data[DATA_START_INDEX+2+i] = page_data[i]\
-  
-  def bootloader_write_page_addr32(self, addr, page_data=[]):
-    if self.data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_ADDR32_OPCODE:
-      num = addr.to_bytes(4, byteorder='big')
-      self.data[DATA_START_INDEX] = num[0]
-      self.data[DATA_START_INDEX+1] = num[1]
-      self.data[DATA_START_INDEX+2] = num[2]
-      self.data[DATA_START_INDEX+3] = num[3]
-      if len(page_data)==128:
-        self.data[MSG_LEN_INDEX] = 0x8a
-        for i in range(0,len(page_data)):
-          self.data[DATA_START_INDEX+4+i] = page_data[i]
 
   def common_ascii(self, ascii):
     if self.data[OPCODE_INDEX] == COMMON_ASCII_OPCODE:
@@ -438,30 +396,107 @@ class RxCmdBuff:
     else:
       pass
 
+## Buffer for transmitted TAOLST commands
+class TxCmdBuff:
+  def __init__(self):
+    self.empty = True
+    self.start_index = 0
+    self.end_index = 0
+    self.data = [0x00]*CMD_MAX_LEN
 
+  def clear(self):
+    self.empty = True
+    self.start_index = 0
+    self.end_index = 0
+    self.data = [0x00]*CMD_MAX_LEN
 
+  def generate_reply(self, rx_cmd_buff):
+    if rx_cmd_buff.state==RxCmdBuffState.COMPLETE and self.empty:
+      self.data[START_BYTE_0_INDEX] = START_BYTE_0
+      self.data[START_BYTE_1_INDEX] = START_BYTE_1
+      self.data[HWID_LSB_INDEX] = rx_cmd_buff.data[HWID_LSB_INDEX]
+      self.data[HWID_MSB_INDEX] = rx_cmd_buff.data[HWID_MSB_INDEX]
+      self.data[MSG_ID_LSB_INDEX] = rx_cmd_buff.data[MSG_ID_LSB_INDEX]
+      self.data[MSG_ID_MSB_INDEX] = rx_cmd_buff.data[MSG_ID_MSB_INDEX]
+      self.data[DEST_ID_INDEX] = \
+       (0x0f & rx_cmd_buff.data[DEST_ID_INDEX]) << 4 | \
+       (0xf0 & rx_cmd_buff.data[DEST_ID_INDEX]) >> 4
+      if rx_cmd_buff.data[OPCODE_INDEX] == APP_GET_TELEM_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x54
+        self.data[OPCODE_INDEX] = APP_TELEM_OPCODE
+        for i in range(0,self.data[MSG_LEN_INDEX]-0x06):
+          self.data[DATA_START_INDEX+i] = 0x00
+      elif rx_cmd_buff.data[OPCODE_INDEX] == APP_GET_TIME_OPCODE:
+        td  = datetime.datetime.now(tz=datetime.timezone.utc) - J2000
+        sec = math.floor(td.total_seconds())
+        ns  = td.microseconds * 1000
+        sec_bytes = bytearray(sec.to_bytes(4,'little'))
+        ns_bytes  = bytearray( ns.to_bytes(4,"little"))
+        self.data[MSG_LEN_INDEX] = 0x0e
+        self.data[OPCODE_INDEX] = APP_SET_TIME_OPCODE
+        self.data[DATA_START_INDEX+0] = sec_bytes[0]
+        self.data[DATA_START_INDEX+1] = sec_bytes[1]
+        self.data[DATA_START_INDEX+2] = sec_bytes[2]
+        self.data[DATA_START_INDEX+3] = sec_bytes[3]
+        self.data[DATA_START_INDEX+4] =  ns_bytes[0]
+        self.data[DATA_START_INDEX+5] =  ns_bytes[1]
+        self.data[DATA_START_INDEX+6] =  ns_bytes[2]
+        self.data[DATA_START_INDEX+7] =  ns_bytes[3]
+      elif rx_cmd_buff.data[OPCODE_INDEX] == APP_REBOOT_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == APP_SET_TIME_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == APP_TELEM_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_ACK_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_ERASE_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_NACK_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_PING_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_WRITE_PAGE_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == BOOTLOADER_JUMP_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == COMMON_ACK_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_ACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == COMMON_ASCII_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
+      elif rx_cmd_buff.data[OPCODE_INDEX] == COMMON_NACK_OPCODE:
+        self.data[MSG_LEN_INDEX] = 0x06
+        self.data[OPCODE_INDEX] = COMMON_NACK_OPCODE
 
-
-
+  def __str__(self):
+    return cmd_bytes_to_str(self.data)
 
 # initialize script arguments
 dev = '' # serial device
 
 # parse script arguments
-if len(sys.argv)==3:
-  usr_prog = sys.argv[1]
-  dev = sys.argv[2]
+if len(sys.argv)==2:
+  dev = sys.argv[1]
 else:
   print(\
    'Usage: '\
-   'python3 upload_program_addr32.py '\
-   '/path/to/program.hex '\
+   'python3 blink_demo_jump.py '\
    '/path/to/dev'\
   )
   exit()
 
 # Create serial object
-
 try:
   serial_port = serial.Serial(port=dev,baudrate=115200)
 except:
@@ -469,81 +504,15 @@ except:
   print('  '+dev)
   exit()
 
-###############################################################################
+################################################################################
 
 # Set up test support variables
 msgid = 0x0000
 rx_cmd_buff = RxCmdBuff()
 
-# Parse .hex file to convert to bytearrays of length 128 for bootloader
-# write page commands
-bytes_read = 0
-lines = []
-total_data = ''
-with open(usr_prog, "r") as f:
-    lines = f.readlines()
+print("Jump Time!")
 
-for line in lines:
-    num_byte = int(line[1:3], 16)
-    data = line[9 : (9 + (num_byte*2))]
-    #Only add hex data
-    if (line[7:9] == '00'):
-      total_data += data
-
-pages = []
-page_offset = 0
-curr_page = [page_offset]
-page_counter = 0
-for i in range(0, len(total_data), 2):
-
-  if (page_counter == 128):
-    pages += [curr_page]
-    page_offset += 1
-    curr_page = [page_offset]
-    page_counter = 0
-
-  curr_byte_str = total_data[i:i+2]
-  curr_byte_hex = int(curr_byte_str,16)
-  curr_page += [curr_byte_hex]
-  page_counter += 1
-
-#Fill up last chunk
-while(page_counter < 128):
-  curr_page += [0xff]
-  page_counter += 1
-
-pages += [curr_page]
-
-if (len(pages) > 255):
-  print("Program larger than 255 pages, too big for bootloader_write_page")
-
-
-print(f'num of pages: {len(pages)}')
-
-# Bootloader write page commands for user program
-for page in pages:
-    cmd = TxCmd(BOOTLOADER_WRITE_PAGE_ADDR32_OPCODE, HWID, msgid, SRC, DST)
-    addr_write = START_ADDR + page[0] * BYTES_PER_CMD
-    cmd.bootloader_write_page_addr32(addr=addr_write, page_data=bytearray(page[1:len(page)]))
-    byte_i = 0
-    while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
-        if byte_i < cmd.get_byte_count():
-          serial_port.write(cmd.data[byte_i].to_bytes(1, byteorder='big'))
-          byte_i += 1
-        if serial_port.in_waiting>0:
-          bytes = serial_port.read(1)
-          for b in bytes:
-            rx_cmd_buff.append_byte(b)
-    print('txcmd: '+str(cmd))
-    print('reply: '+str(rx_cmd_buff)+'\n')
-    cmd.clear()
-    rx_cmd_buff.clear()
-    msgid += 1
-    #time.sleep(1.0)
-
-
-
-# Bootloader jump
+# 3. Bootloader jump
 cmd = TxCmd(BOOTLOADER_JUMP_OPCODE, HWID, msgid, SRC, DST)
 byte_i = 0
 while rx_cmd_buff.state != RxCmdBuffState.COMPLETE:
@@ -560,9 +529,4 @@ cmd.clear()
 rx_cmd_buff.clear()
 msgid += 1
 time.sleep(1.0)
-
-f.close()
-
-
-
 

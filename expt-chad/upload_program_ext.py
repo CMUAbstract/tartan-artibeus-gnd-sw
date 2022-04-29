@@ -423,7 +423,7 @@ if len(sys.argv)==3:
 else:
   print(\
    'Usage: '\
-   'python3 upload_program.py '\
+   'python3 upload_program_ext.py '\
    '/path/to/program.hex '\
    '/path/to/dev'\
   )
